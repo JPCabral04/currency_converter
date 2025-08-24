@@ -1,20 +1,77 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import api from "../api";
 
 const ConverterForm = () => {
-  const [amount, setAmount] = useState(null);
+  const [amount, setAmount] = useState("");
+  const [isLoading, setLoading] = useState(true);
+  const [rates, setRates] = useState<Record<string, number>>({});
+
+  const [fromCurrency, setFromCurrency] = useState("USD");
+  const [toCurrency, setToCurrency] = useState("BRL");
+  const [convertedAmount, setConvertedAmount] = useState<number | null>(null);
+
+  useEffect(() => {
+    api()
+      .then((data) => {
+        if (data && data.rates) {
+          setRates(data.rates);
+        }
+
+        setLoading(false);
+      })
+      .catch((error) => console.error("Fail to search data"));
+  }, []);
+
+  function handleConvert(event: React.FormEvent) {
+    event.preventDefault();
+
+    const amountInBaseCurrency = Number(amount) / rates[fromCurrency];
+    const result = amountInBaseCurrency * rates[toCurrency];
+
+    setConvertedAmount(result);
+  }
 
   return (
     <form>
       <label>Value</label>
-      <input type="number">{amount}</input>
+      <input
+        type="number"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+      ></input>
+      <label>From Currency</label>
+      <select
+        name="fromCurrency"
+        value={fromCurrency}
+        onChange={(e) => setFromCurrency(e.target.value)}
+      >
+        {Object.keys(rates).map((currency) => (
+          <option value={currency} key={currency}>
+            {currency}
+          </option>
+        ))}
+      </select>
+      <label>To Currency</label>
+      <select
+        name="toCurrency"
+        value={toCurrency}
+        onChange={(e) => setToCurrency(e.target.value)}
+      >
+        {Object.keys(rates).map((currency) => (
+          <option value={currency} key={currency}>
+            {currency}
+          </option>
+        ))}
+      </select>
+      <button onClick={handleConvert} type="submit">
+        Convert
+      </button>
 
-      <label>Currency</label>
-      <input type="text"></input>
-
-      <label>Currency to be converted</label>
-      <input type="text"></input>
-
-      <button type="submit">Convert</button>
+      {convertedAmount !== null && (
+        <p>
+          Resultado: {convertedAmount.toFixed(2)} {toCurrency}
+        </p>
+      )}
     </form>
   );
 };
