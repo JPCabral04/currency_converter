@@ -3,7 +3,6 @@ import api from "../api";
 
 const ConverterForm = () => {
   const [amount, setAmount] = useState("");
-  const [isLoading, setLoading] = useState(true);
   const [rates, setRates] = useState<Record<string, number>>({});
 
   const [fromCurrency, setFromCurrency] = useState("USD");
@@ -16,8 +15,6 @@ const ConverterForm = () => {
         if (data && data.rates) {
           setRates(data.rates);
         }
-
-        setLoading(false);
       })
       .catch((error) => console.error("Fail to search data"));
   }, []);
@@ -31,6 +28,12 @@ const ConverterForm = () => {
     setConvertedAmount(result);
   }
 
+  function handleSwapCurrency() {
+    const temp = fromCurrency;
+    setFromCurrency(toCurrency);
+    setToCurrency(temp);
+  }
+
   return (
     <form>
       <label>Value</label>
@@ -39,6 +42,7 @@ const ConverterForm = () => {
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
       ></input>
+
       <label>From Currency</label>
       <select
         name="fromCurrency"
@@ -51,6 +55,9 @@ const ConverterForm = () => {
           </option>
         ))}
       </select>
+
+      <button onClick={handleSwapCurrency}></button>
+
       <label>To Currency</label>
       <select
         name="toCurrency"
@@ -63,6 +70,7 @@ const ConverterForm = () => {
           </option>
         ))}
       </select>
+
       <button onClick={handleConvert} type="submit">
         Convert
       </button>
